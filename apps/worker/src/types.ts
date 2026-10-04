@@ -5,6 +5,7 @@ export type AppBindings = {
   EVENT_BLOB: R2Bucket;
   WEBHOOK_QUEUE: Queue<EnqueuedWebhookEvent>;
   TUNNEL_HUB: DurableObjectNamespace;
+  DEMO_HUB: DurableObjectNamespace;
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
   AUTH_REDIRECT_URI: string;
