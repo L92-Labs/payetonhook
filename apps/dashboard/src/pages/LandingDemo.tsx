@@ -194,20 +194,24 @@ export default function LandingDemo() {
                   <span className="landing-demo-body">{bodyPreview(event.body) || "—"}</span>
                   <span className="landing-demo-chevron" aria-hidden="true">{open ? "−" : "+"}</span>
                 </button>
-                {open ? (
-                  <div className="landing-demo-detail">
-                    <p className="landing-demo-detail-meta">
-                      {event.path ?? "/in/demo"} · {event.size ?? event.body.length} bytes
-                      {event.contentType ? ` · ${event.contentType}` : ""}
-                    </p>
-                    <pre>{prettyBody(event.body) || "—"}</pre>
-                  </div>
-                ) : null}
               </li>
             );
           })
         )}
       </ul>
+      {(() => {
+        const openEvent = events.find((event) => event.id === openId);
+        if (!openEvent) return null;
+        return (
+          <div className="landing-demo-detail" aria-label={`Payload of ${openEvent.id}`}>
+            <p className="landing-demo-detail-meta">
+              {openEvent.path ?? "/in/demo"} · {openEvent.size ?? openEvent.body.length} bytes
+              {openEvent.contentType ? ` · ${openEvent.contentType}` : ""}
+            </p>
+            <pre>{prettyBody(openEvent.body) || "—"}</pre>
+          </div>
+        );
+      })()}
       {reconnecting && <p className="landing-demo-reconnecting">live connection lost, retrying…</p>}
 
       <p className="landing-demo-note">

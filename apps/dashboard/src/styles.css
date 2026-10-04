@@ -3317,8 +3317,12 @@ h3 {
 }
 
 .landing-demo-detail {
-  padding: 0 0.75rem 0.85rem calc(0.75rem + 2px);
-  max-width: 52rem;
+  margin: 0.7rem 0 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--surface);
+  padding: 0.75rem 0.85rem;
+  animation: landing-demo-in 200ms var(--ease) both;
 }
 
 .landing-demo-detail-meta {
@@ -3331,11 +3335,6 @@ h3 {
 
 .landing-demo-detail pre {
   margin: 0;
-  border: 1px solid var(--line);
-  border-radius: var(--r-ctl);
-  background: var(--surface);
-  padding: 0.7rem 0.85rem;
-  max-height: 15rem;
   overflow: auto;
   font-family: var(--font-mono);
   font-size: 0.72rem;
