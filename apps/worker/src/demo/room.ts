@@ -21,7 +21,7 @@ export class DemoRoom {
   private events: DemoEvent[] = [];
   private createdAt = Date.now();
   private lastTouch = Date.now();
-  private writers = new Set<WritableStreamDefaultWriter<Uint8Array>>();
+  private sinks = new Set<{ enqueue(frame: Uint8Array): void; close(): void }>();
   private encoder = new TextEncoder();
 
   constructor(private readonly ctx: DurableObjectState, private readonly env: unknown) {
@@ -72,40 +72,48 @@ export class DemoRoom {
   }
 
   private async handleEvents(request: Request): Promise<Response> {
-    const { readable, writable } = new TransformStream<Uint8Array>();
-    const writer = writable.getWriter();
-    this.writers.add(writer);
-    this.touch();
-
-    const send = (message: SseMessage) =>
-      writer.write(this.encoder.encode(`data: ${JSON.stringify(message)}\n\n`));
-
-    try {
-      await send({ type: "snapshot", events: this.events });
-    } catch {
-      this.writers.delete(writer);
-    }
-
-    request.signal.addEventListener("abort", () => {
-      this.writers.delete(writer);
-      void writer.close().catch(() => {});
+    const encoder = this.encoder;
+    const sinks = this.sinks;
+    const snapshotEvents = this.events;
+    const sink = { enqueue: (_frame: Uint8Array) => {}, close: () => {} };
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        sink.enqueue = (frame: Uint8Array) => controller.enqueue(frame);
+        sink.close = () => {
+          try {
+            controller.close();
+          } catch {
+            /* already closed */
+          }
+        };
+        sinks.add(sink);
+        sink.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "snapshot", events: snapshotEvents } satisfies SseMessage)}\n\n`));
+      },
+      cancel() {
+        sinks.delete(sink);
+      }
     });
-
-    return new Response(readable, {
+    this.touch();
+    request.signal.addEventListener("abort", () => {
+      sinks.delete(sink);
+      sink.close();
+    });
+    return new Response(stream, {
       headers: {
         "content-type": "text/event-stream; charset=utf-8",
-        "cache-control": "no-cache, no-transform",
-        connection: "keep-alive"
+        "cache-control": "no-cache, no-transform"
       }
     });
   }
 
   private broadcast(message: SseMessage): void {
     const frame = this.encoder.encode(`data: ${JSON.stringify(message)}\n\n`);
-    for (const writer of this.writers) {
-      writer.write(frame).catch(() => {
-        this.writers.delete(writer);
-      });
+    for (const sink of this.sinks) {
+      try {
+        sink.enqueue(frame);
+      } catch {
+        this.sinks.delete(sink);
+      }
     }
   }
 

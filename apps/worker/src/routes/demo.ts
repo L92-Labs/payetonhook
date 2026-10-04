@@ -94,17 +94,22 @@ demoRouter.post("/in/demo/:slot", async (c) => {
   return c.json(result, roomResponse.ok ? 202 : 400);
 });
 
-demoRouter.get("/demo/events/:slot", (c) => {
+demoRouter.get("/demo/events/:slot", async (c) => {
   const slot = c.req.param("slot");
   if (!isValidDemoSlot(slot)) {
     applyCors(c);
     return c.text("Invalid slot", 400);
   }
   const stub = getRoomStub(c.env, slot);
-  return stub.fetch("https://demo-room/events", {
+  const roomResponse = await stub.fetch("https://demo-room/events", {
     headers: { accept: c.req.header("accept") ?? "text/event-stream" },
     signal: c.req.raw.signal
   });
+  const headers = new Headers(roomResponse.headers);
+  for (const [key, value] of Object.entries(corsHeaders(c.env, c.req.raw))) {
+    headers.set(key, value);
+  }
+  return new Response(roomResponse.body, { status: roomResponse.status, headers });
 });
 
 demoRouter.options("/in/demo/:slot", (c) => {
