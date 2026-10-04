@@ -1,8 +1,16 @@
 const DEFAULT_WORKER_API_BASE = "https://api.payetonhook.l92-labs.com";
 const apiBase = import.meta.env.VITE_API_BASE ?? DEFAULT_WORKER_API_BASE;
+// DEMO-ONLY: when VITE_DEMO=1 every request is served by local fixtures
+// (src/lib/demo.ts) and no network call is made. Strictly env-gated; the flag
+// is absent in production builds, so this branch compiles away.
+const DEMO_MODE = import.meta.env.VITE_DEMO === "1";
 let csrfToken: string | null = null;
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  if (DEMO_MODE) {
+    const { demoRequest } = await import("./demo");
+    return demoRequest<T>(options?.method ?? "GET", path, options?.body ? JSON.parse(String(options.body)) : undefined);
+  }
   const response = await fetch(`${apiBase}${path}`, {
     credentials: "include",
     ...options

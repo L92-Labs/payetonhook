@@ -1,13 +1,14 @@
 import { type ChangeEvent, useDeferredValue, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Copy } from "lucide-react";
 import { apiDelete, apiGet, apiPatch, apiPost, getApiBase } from "../lib/api";
+import { legacyQueryPlace, navigate, routeSlug, useRoute, type Route, type RoutePlace } from "../lib/router";
 import { HeroToolbar, ProjectSummarySection, DashboardDialog } from "./dashboard/ChromeSections";
+import { DeadLetterView, DLQ_SCAN_LIMIT, type DeadLetterEntry } from "./dashboard/DeadLetterView";
 import { ProjectView } from "./dashboard/ProjectView";
 import { TriageView } from "./dashboard/TriageView";
 import type {
   ApiKeyRow,
   AttemptRow,
-  DashboardView,
   DeliveryHealthMetric,
   DetailedStatusMetric,
   DialogState,
@@ -17,7 +18,6 @@ import type {
   OpsDestinationFailure,
   OpsSummary,
   ProjectEndpointRow,
-  ProjectSection,
   ProjectRow,
   ProjectsVolumeMetric,
   StatusBucketMetric,
@@ -26,35 +26,13 @@ import type {
   TunnelConnection
 } from "./dashboard/types";
 
-function parseProjectSection(value: string | null): ProjectSection {
-  if (value === "endpoints" || value === "access" || value === "monitoring" || value === "tunnels") return value;
-  return "overview";
-}
-
-function parseDashboardLocation(search: string): { view: DashboardView; section: ProjectSection } {
-  const params = new URLSearchParams(search);
-  const tab = params.get("tab");
-  if (tab === "project") {
-    return { view: "project", section: parseProjectSection(params.get("section")) };
-  }
-  if (tab === "keys") {
-    return { view: "project", section: "access" };
-  }
-  if (tab === "observability") {
-    return { view: "project", section: "monitoring" };
-  }
-  return { view: "events", section: "overview" };
-}
-
 export function DashboardApp() {
   const [authResolved, setAuthResolved] = useState(false);
   const [me, setMe] = useState<{ id: string; name: string; email: string; picture: string } | null>(null);
   const [projects, setProjects] = useState<ProjectRow[]>([]);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [events, setEvents] = useState<EventRow[]>([]);
   const [eventsPageInfo, setEventsPageInfo] = useState<EventPageInfo>({ nextCursor: null, hasMore: false });
   const [isLoadingMoreEvents, setIsLoadingMoreEvents] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const [attempts, setAttempts] = useState<AttemptRow[]>([]);
   const [apiKeys, setApiKeys] = useState<ApiKeyRow[]>([]);
   const [newApiKey, setNewApiKey] = useState<string | null>(null);
@@ -80,14 +58,9 @@ export function DashboardApp() {
   const [fromDateTime, setFromDateTime] = useState("");
   const [toDateTime, setToDateTime] = useState("");
   const [autoRefresh, setAutoRefresh] = useState(false);
-  const [activeView, setActiveView] = useState<DashboardView>(() => {
-    if (typeof window === "undefined") return "events";
-    return parseDashboardLocation(window.location.search).view;
-  });
-  const [projectSection, setProjectSection] = useState<ProjectSection>(() => {
-    if (typeof window === "undefined") return "overview";
-    return parseDashboardLocation(window.location.search).section;
-  });
+  const route = useRoute();
+  const routeRef = useRef<Route | null>(route);
+  routeRef.current = route;
   const [density, setDensity] = useState<"comfortable" | "compact">("comfortable");
   const deferredQuery = useDeferredValue(query);
   const [tunnels, setTunnels] = useState<TunnelConnection[]>([]);
@@ -111,8 +84,13 @@ export function DashboardApp() {
   const [dialogForwardUrl, setDialogForwardUrl] = useState("");
   const [dialogSubmitting, setDialogSubmitting] = useState(false);
 
-  const deadLetters = useMemo(() => attempts.filter((a) => a.success === 0), [attempts]);
+  const selectedProject = useMemo(() => projects.find((p) => p.slug === routeSlug(route)) ?? null, [projects, route]);
+  const selectedProjectId = selectedProject?.id ?? null;
+  const selectedEvent = route?.place === "events" ? route.eventId : null;
   const selectedEventRow = useMemo(() => events.find((evt) => evt.id === selectedEvent) ?? null, [events, selectedEvent]);
+  const attemptCacheRef = useRef(new Map<string, AttemptRow[]>());
+  const [dlqVersion, setDlqVersion] = useState(0);
+  const [dlqScanning, setDlqScanning] = useState(false);
   const filteredEvents = useMemo(() => {
     const parseFilterDateTime = (value: string): number | null => {
       if (!value) return null;
@@ -142,7 +120,6 @@ export function DashboardApp() {
     });
   }, [events, deferredQuery, showReplaysOnly, fromDateTime, toDateTime, timeZoneMode]);
 
-  const selectedProject = useMemo(() => projects.find((p) => p.id === selectedProjectId) ?? null, [projects, selectedProjectId]);
   const ingressUrl = `${getApiBase()}/in/${selectedProject?.slug ?? "..."}`;
   const latestEvent = events[0] ?? null;
   const searchInputRef = useRef<HTMLInputElement | null>(null);
@@ -185,9 +162,6 @@ export function DashboardApp() {
       if (projectRes.projects.length === 0) {
         const created = await apiPost<{ project: ProjectRow }>("/api/projects", { name: "My First Project" });
         setProjects([created.project]);
-        setSelectedProjectId(created.project.id);
-      } else {
-        setSelectedProjectId(projectRes.projects[0].id);
       }
     } catch {
       setMe(null);
@@ -200,29 +174,22 @@ export function DashboardApp() {
     void bootstrap();
   }, []);
 
+  // Addressable places: default to the first project when no (or an unknown) slug is
+  // addressed, translating legacy `?tab=` URLs once. Runs as a correction (replace).
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const url = new URL(window.location.href);
-    if (activeView === "project") {
-      url.searchParams.set("tab", "project");
-      url.searchParams.set("section", projectSection);
-    } else {
-      url.searchParams.set("tab", "events");
-      url.searchParams.delete("section");
+    if (!authResolved || projects.length === 0 || typeof window === "undefined") return;
+    const slugKnown = projects.some((p) => p.slug === route?.slug);
+    if (route && slugKnown) return;
+    const fallbackSlug = projects[0].slug;
+    const legacy = legacyQueryPlace(window.location.search);
+    const next: Route = legacy
+      ? { place: "project", slug: fallbackSlug, section: legacy.section }
+      : { place: "events", slug: fallbackSlug, eventId: null };
+    navigate(next, { replace: true });
+    if (legacy) {
+      window.history.replaceState({}, "", `${window.location.pathname}${window.location.hash}`);
     }
-    window.history.replaceState({}, "", url.toString());
-  }, [activeView, projectSection]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const onPopState = () => {
-      const nextLocation = parseDashboardLocation(window.location.search);
-      setActiveView(nextLocation.view);
-      setProjectSection(nextLocation.section);
-    };
-    window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
-  }, []);
+  }, [authResolved, projects, route]);
 
   async function loadEvents(options?: { append?: boolean }) {
     if (!selectedProjectId) return;
@@ -240,14 +207,17 @@ export function DashboardApp() {
       setEventsPageInfo(data.pageInfo ?? { nextCursor: null, hasMore: false });
       if (!append) {
         if (data.events.length === 0) {
-          setSelectedEvent(null);
           setAttempts([]);
           setPayload("");
           setEventTunnels([]);
           setEventEndpointPath(null);
           setEventQueryParams({});
-        } else if (!data.events.some((event) => event.id === selectedEvent)) {
-          void selectEvent(data.events[0].id);
+        } else {
+          const current = routeRef.current;
+          const addressed = current?.place === "events" ? current.eventId : null;
+          if ((!addressed || !data.events.some((event) => event.id === addressed)) && current?.place === "events") {
+            navigate({ place: "events", slug: current.slug, eventId: data.events[0].id }, { replace: true });
+          }
         }
       }
     } catch (err) {
@@ -258,11 +228,10 @@ export function DashboardApp() {
     }
   }
 
-  async function selectEvent(eventId: string) {
+  async function loadEventDetail(eventId: string) {
     if (!selectedProjectId) return;
     try {
       setIsLoadingDetail(true);
-      setSelectedEvent(eventId);
       // Prevent stale endpoint text while detail request is in flight.
       setEventEndpointPath(null);
       const [attemptData, payloadData, tunnelData] = await Promise.all([
@@ -273,6 +242,7 @@ export function DashboardApp() {
         apiGet<{ tunnels: TunnelAttemptRow[] }>(`/api/projects/${selectedProjectId}/events/${eventId}/tunnels`)
       ]);
       setAttempts(attemptData.attempts);
+      attemptCacheRef.current.set(eventId, attemptData.attempts);
       setPayload(payloadData.payload);
       setEventMethod((payloadData.method ?? "POST").toUpperCase());
       setEventReplay(payloadData.replay === true);
@@ -284,9 +254,18 @@ export function DashboardApp() {
     }
   }
 
-  async function replayEvent() {
-    if (!selectedEvent || !selectedProjectId) return;
-    await apiPost(`/api/projects/${selectedProjectId}/events/${selectedEvent}/replay`);
+  // The addressed event drives the detail panel; deep links land here.
+  const addressedEventId = route?.place === "events" ? route.eventId : null;
+  useEffect(() => {
+    if (!selectedProjectId || !addressedEventId) return;
+    void loadEventDetail(addressedEventId);
+  }, [selectedProjectId, addressedEventId]);
+
+  async function replayEvent(eventId?: string) {
+    const target = eventId ?? (routeRef.current?.place === "events" ? routeRef.current.eventId : null);
+    if (!target || !selectedProjectId) return;
+    await apiPost(`/api/projects/${selectedProjectId}/events/${target}/replay`);
+    attemptCacheRef.current.delete(target);
     await loadEvents();
   }
 
@@ -309,15 +288,15 @@ export function DashboardApp() {
         searchInputRef.current?.focus();
         return;
       }
-      if (activeView !== "events" || isTyping) return;
+      if (routeRef.current?.place !== "events" || isTyping) return;
       if (event.key.toLowerCase() === "j" && filteredEvents.length) {
         event.preventDefault();
         const next = Math.min(filteredEvents.length - 1, Math.max(0, selectedEventIndex + 1));
-        void selectEvent(filteredEvents[next].id);
+        if (routeRef.current) navigate({ place: "events", slug: routeRef.current.slug, eventId: filteredEvents[next].id }, { replace: true });
       } else if (event.key.toLowerCase() === "k" && filteredEvents.length) {
         event.preventDefault();
         const prev = Math.max(0, selectedEventIndex <= 0 ? 0 : selectedEventIndex - 1);
-        void selectEvent(filteredEvents[prev].id);
+        if (routeRef.current) navigate({ place: "events", slug: routeRef.current.slug, eventId: filteredEvents[prev].id }, { replace: true });
       } else if (event.key.toLowerCase() === "r" && selectedEvent) {
         event.preventDefault();
         void replayEvent();
@@ -325,7 +304,7 @@ export function DashboardApp() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [activeView, filteredEvents, selectedEvent, selectedEventIndex]);
+  }, [filteredEvents, selectedEvent, selectedEventIndex]);
 
   async function loadApiKeys() {
     if (!selectedProjectId) return;
@@ -361,12 +340,9 @@ export function DashboardApp() {
     await loadTunnels();
   }
 
-  async function refreshProjects(selectId?: string | null) {
+  async function refreshProjects() {
     const projectRes = await apiGet<{ projects: ProjectRow[] }>("/api/projects");
     setProjects(projectRes.projects);
-    if (selectId !== undefined) {
-      setSelectedProjectId(selectId ?? projectRes.projects[0]?.id ?? null);
-    }
   }
 
   function createProject() {
@@ -437,7 +413,7 @@ export function DashboardApp() {
         if (!name) throw new Error("Project name is required");
         if (name !== dialog.currentName || primaryForwardUrl !== dialog.currentPrimaryForwardUrl) {
           await apiPatch(`/api/projects/${dialog.projectId}`, { name, primary_forward_url: primaryForwardUrl });
-          await refreshProjects(dialog.projectId);
+          await refreshProjects();
         }
         success = true;
       }
@@ -569,7 +545,6 @@ export function DashboardApp() {
   useEffect(() => {
     setEvents([]);
     setEventsPageInfo({ nextCursor: null, hasMore: false });
-    setSelectedEvent(null);
     setAttempts([]);
     setPayload("");
     setEventMethod("POST");
@@ -646,8 +621,92 @@ export function DashboardApp() {
   }
 
   function handleProjectSelect(event: ChangeEvent<HTMLSelectElement>) {
-    const value = event.target.value;
-    startTransition(() => setSelectedProjectId(value));
+    const slug = event.target.value;
+    const current = routeRef.current;
+    const place: RoutePlace = current?.place ?? "events";
+    startTransition(() => {
+      if (place === "project") navigate({ place: "project", slug, section: current?.place === "project" ? current.section : "overview" });
+      else if (place === "dead-letters") navigate({ place: "dead-letters", slug });
+      else navigate({ place: "events", slug, eventId: null });
+    });
+  }
+
+  function switchPlace(place: RoutePlace) {
+    const slug = routeSlug(routeRef.current) ?? selectedProject?.slug ?? projects[0]?.slug;
+    if (!slug) return;
+    if (place === "project") {
+      navigate({ place: "project", slug, section: routeRef.current?.place === "project" ? routeRef.current.section : "overview" });
+    } else if (place === "dead-letters") {
+      navigate({ place: "dead-letters", slug });
+    } else {
+      navigate({ place: "events", slug, eventId: null });
+    }
+  }
+
+  // Dead-letter scan: attempts of the newest events, cached per event. Provisional —
+  // the right fix is a worker-side failed-events query (docs/design/layers/decisions.md, D6).
+  const dlqCandidates = useMemo(() => events.slice(0, DLQ_SCAN_LIMIT), [events]);
+  const dlqScannedCount = useMemo(
+    () => dlqCandidates.filter((event) => attemptCacheRef.current.has(event.id)).length,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dlqCandidates, dlqVersion]
+  );
+  useEffect(() => {
+    if (!selectedProjectId || route?.place !== "dead-letters") return;
+    const missing = dlqCandidates.filter((event) => !attemptCacheRef.current.has(event.id));
+    if (missing.length === 0) return;
+    let active = true;
+    setDlqScanning(true);
+    void (async () => {
+      const results = await Promise.all(
+        missing.map(async (event) => {
+          try {
+            const data = await apiGet<{ attempts: AttemptRow[] }>(`/api/projects/${selectedProjectId}/events/${event.id}/attempts`);
+            return [event.id, data.attempts] as const;
+          } catch {
+            return [event.id, [] as AttemptRow[]] as const;
+          }
+        })
+      );
+      for (const [eventId, attemptsForEvent] of results) {
+        attemptCacheRef.current.set(eventId, attemptsForEvent);
+      }
+      if (!active) return;
+      setDlqVersion((version) => version + 1);
+      setDlqScanning(false);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [selectedProjectId, route?.place, dlqCandidates, dlqVersion]);
+
+  const deadLetterEntries = useMemo<DeadLetterEntry[]>(() => {
+    const entries: DeadLetterEntry[] = [];
+    for (const event of dlqCandidates) {
+      const attemptsForEvent = attemptCacheRef.current.get(event.id);
+      if (!attemptsForEvent) continue;
+      const latestByTarget = new Map<string, AttemptRow>();
+      for (const attempt of attemptsForEvent) {
+        const key = attempt.destination_id ?? "target";
+        const existing = latestByTarget.get(key);
+        if (!existing || attempt.attempt_no >= existing.attempt_no) latestByTarget.set(key, attempt);
+      }
+      const failed = [...latestByTarget.values()]
+        .filter((attempt) => attempt.success !== 1)
+        .sort((a, b) => b.attempted_at - a.attempted_at);
+      if (failed.length > 0) {
+        entries.push({ event, failed, lastAttemptedAt: failed[0].attempted_at });
+      }
+    }
+    return entries.sort((a, b) => b.lastAttemptedAt - a.lastAttemptedAt);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dlqCandidates, dlqVersion]);
+
+  function rescanDeadLetters() {
+    for (const event of dlqCandidates) {
+      attemptCacheRef.current.delete(event.id);
+    }
+    setDlqVersion((version) => version + 1);
   }
 
   if (!authResolved) {
@@ -686,17 +745,17 @@ export function DashboardApp() {
     <main className="layout">
       <a className="skip-link" href="#main-workspace">Skip to workspace</a>
       <HeroToolbar
-        activeView={activeView}
+        activeView={route?.place ?? "events"}
         isPending={isPending}
         meName={me.name}
-        onActiveViewChange={setActiveView}
+        onActiveViewChange={switchPlace}
         onLogout={() => void logout()}
         onProjectSelect={handleProjectSelect}
         projects={projects}
-        selectedProjectId={selectedProjectId}
+        selectedProjectSlug={selectedProject?.slug ?? null}
       />
 
-      {activeView === "events" ? (
+      {route?.place === "events" ? (
         <ProjectSummarySection
           endpointBase={endpointBase}
           ingressUrl={ingressUrl}
@@ -708,7 +767,7 @@ export function DashboardApp() {
         />
       ) : null}
 
-      {activeView === "events" ? (
+      {route?.place === "events" ? (
         <div className="view-toolbar reveal-3">
           <div className="view-toolbar-main">
             <label className="field-label field-label-search">
@@ -816,12 +875,12 @@ export function DashboardApp() {
         </p>
       ) : null}
 
-      {/* ── Triage view ─────────────────────────────── */}
-      {activeView === "events" ? (
+      {/* ── Events (triage) ─────────────────────────── */}
+      {route?.place === "events" ? (
         <TriageView
           attempts={attempts}
           countryFlag={countryFlag}
-          deadLettersCount={deadLetters.length}
+          deadLettersCount={attempts.filter((a) => a.success === 0).length}
           density={density}
           endpointPathForEvent={endpointPathForEvent}
           eventEndpointPath={eventEndpointPath}
@@ -839,8 +898,12 @@ export function DashboardApp() {
           latestEvent={latestEvent}
           onCopyText={copyText}
           onLoadMore={() => void loadEvents({ append: true })}
+          onOpenDeadLetters={() => switchPlace("dead-letters")}
           onReplayEvent={() => void replayEvent()}
-          onSelectEvent={(eventId) => void selectEvent(eventId)}
+          onSelectEvent={(eventId) => {
+            const current = routeRef.current;
+            if (current) navigate({ place: "events", slug: current.slug, eventId });
+          }}
           prettyPayload={prettyPayload}
           selectedEvent={selectedEvent}
           selectedEventRow={selectedEventRow}
@@ -848,9 +911,29 @@ export function DashboardApp() {
         />
       ) : null}
 
-      {activeView === "project" ? (
+      {/* ── Dead letters ────────────────────────────── */}
+      {route?.place === "dead-letters" ? (
+        <DeadLetterView
+          entries={deadLetterEntries}
+          formatEventTimestamp={formatEventTimestamp}
+          isRefreshing={isRefreshing}
+          onOpenEvent={(eventId) => {
+            const current = routeRef.current;
+            if (current) navigate({ place: "events", slug: current.slug, eventId });
+          }}
+          onRefresh={() => void loadEvents()}
+          onReplayEvent={(eventId) => void replayEvent(eventId)}
+          onRescan={rescanDeadLetters}
+          scanning={dlqScanning}
+          scannedCount={dlqScannedCount}
+          timeAgo={timeAgo}
+          totalLoaded={events.length}
+        />
+      ) : null}
+
+      {route?.place === "project" && route.section ? (
         <ProjectView
-          activeSection={projectSection}
+          activeSection={route.section}
           activeTunnelCount={activeTunnelCount}
           countryFlag={countryFlag}
           dateOnly={dateOnly}
@@ -869,7 +952,10 @@ export function DashboardApp() {
           onEditEndpoint={editEndpoint}
           onRevokeApiKey={(keyId) => void revokeApiKey(keyId)}
           onRotateApiKey={(keyId) => void rotateApiKey(keyId)}
-          onSectionChange={setProjectSection}
+          onSectionChange={(section) => {
+            const current = routeRef.current;
+            if (current) navigate({ place: "project", slug: current.slug, section });
+          }}
           onSelectTunnel={setSelectedTunnel}
           onToggleShowRevokedKeys={() => setShowRevokedKeys((value) => !value)}
           onUpdateProject={updateProject}

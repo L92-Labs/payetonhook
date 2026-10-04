@@ -17,11 +17,13 @@ export type EventPageInfo = {
 
 export type AttemptRow = {
   id: string;
+  destination_id?: string;
   attempt_no: number;
   status_code: number | null;
   success: number;
   error_message: string | null;
   attempted_at: number;
+  duration_ms?: number | null;
 };
 
 export type ProjectRow = {
@@ -152,6 +154,6 @@ export type DialogState =
   | { kind: "deleteEndpoint"; endpoint: ProjectEndpointRow }
   | { kind: "createApiKey" };
 
-export type DashboardView = "events" | "project";
+export type DashboardView = "events" | "dead-letters" | "project";
 
 export type ProjectSection = "overview" | "endpoints" | "access" | "monitoring" | "tunnels";
