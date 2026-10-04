@@ -3193,8 +3193,13 @@ h3 {
   padding: 0.1rem 0.45rem;
 }
 
-.landing-demo-send {
+.landing-demo-actions {
   margin-left: auto;
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.landing-demo-send {
   min-height: 2rem;
   padding-inline: 0.9rem;
   font-size: 0.78rem;
@@ -3254,6 +3259,7 @@ h3 {
   border: 1px solid var(--line);
   border-radius: var(--r-ctl);
   background: var(--surface-sunken);
+  overflow-x: auto;
   min-height: 7.5rem;
   max-height: 15rem;
   overflow-y: auto;
@@ -3269,12 +3275,14 @@ h3 {
 
 .landing-demo-event {
   display: grid;
-  grid-template-columns: auto auto auto auto 1fr;
+  grid-template-columns: auto auto auto auto max-content;
   align-items: baseline;
   gap: 0.55rem;
   padding: 0.5rem 0.75rem;
   border-bottom: 1px solid var(--line);
   animation: landing-demo-in 200ms var(--ease) both;
+  width: max-content;
+  min-width: 100%;
 }
 
 .landing-demo-event:last-child {
@@ -3317,32 +3325,6 @@ h3 {
   margin: 0 0 0.6rem;
   color: var(--muted);
   font-size: 0.74rem;
-}
-
-.landing-demo-curl {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  border: 1px solid var(--line);
-  border-radius: var(--r-ctl);
-  background: var(--surface-sunken);
-  padding: 0.45rem 0.7rem;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  line-height: 1.6;
-  color: var(--muted);
-  overflow-x: auto;
-  scrollbar-width: thin;
-}
-
-.landing-demo-curl .prompt {
-  color: var(--accent);
-  font-weight: 700;
-  flex: none;
-}
-
-.landing-demo-curl {
-  white-space: nowrap;
 }
 
 .landing-demo-note {

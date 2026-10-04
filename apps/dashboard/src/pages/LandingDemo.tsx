@@ -62,7 +62,7 @@ function formatTime(iso: string): string {
 
 function bodyPreview(body: string): string {
   const oneLine = body.replace(/\s+/g, " ").trim();
-  return oneLine.length > 90 ? `${oneLine.slice(0, 90)}…` : oneLine;
+  return oneLine.length > 400 ? `${oneLine.slice(0, 400)}…` : oneLine;
 }
 
 export default function LandingDemo() {
@@ -133,14 +133,23 @@ export default function LandingDemo() {
         <span className={`led ${connected ? "led-live" : ""}`} aria-hidden="true" />
         <span className="landing-demo-title">{connected ? "Live" : reconnecting ? "Reconnecting" : "Connecting"}</span>
         <span className="landing-demo-slot" title="Sandbox slot">{slot}</span>
-        <button
-          type="button"
-          className="ghost-btn landing-demo-send"
-          onClick={sendTestEvent}
-          disabled={sending}
-        >
-          {sending ? "Sending…" : "Send test event"}
-        </button>
+        <span className="landing-demo-actions">
+          <button
+            type="button"
+            className="ghost-btn landing-demo-send"
+            onClick={() => copy(curlCommand, "curl")}
+          >
+            {copied === "curl" ? "Copied" : "Copy curl command"}
+          </button>
+          <button
+            type="button"
+            className="ghost-btn landing-demo-send"
+            onClick={sendTestEvent}
+            disabled={sending}
+          >
+            {sending ? "Sending…" : "Send test event"}
+          </button>
+        </span>
       </header>
 
       <div className="landing-demo-url">
@@ -153,7 +162,7 @@ export default function LandingDemo() {
       <ul className="landing-demo-list" aria-live="polite">
         {events.length === 0 ? (
           <li className="landing-demo-empty">
-            Waiting for your first webhook — run the curl or hit Send test event.
+            Waiting for your first webhook — hit Send test event or POST to the URL above.
           </li>
         ) : (
           events.map((event) => (
@@ -168,13 +177,6 @@ export default function LandingDemo() {
         )}
       </ul>
       {reconnecting && <p className="landing-demo-reconnecting">live connection lost, retrying…</p>}
-
-      <code className="landing-demo-curl">
-        <span className="prompt">$</span> {curlCommand}
-        <button type="button" className="landing-demo-copy" onClick={() => copy(curlCommand, "curl")}>
-          {copied === "curl" ? "Copied" : "Copy"}
-        </button>
-      </code>
 
       <p className="landing-demo-note">
         Temporary sandbox · auto-expires in ~10 minutes · don&apos;t send secrets
