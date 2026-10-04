@@ -1,12 +1,17 @@
 name = "payetonhook-worker"
-account_id = "8d0d123c1ddfd6a019c11046fd5267be"
+account_id = "5d31bf258cf5c8d334f684feb7797e97"
 main = "src/index.ts"
 compatibility_date = "2025-02-01"
+workers_dev = false
+
+routes = [
+  { pattern = "api.payetonhook.l92-labs.com", custom_domain = true }
+]
 
 [[d1_databases]]
 binding = "DB"
 database_name = "payetonhook"
-database_id = "742a7a5f-e61d-4994-abe1-346370228693"
+database_id = "e3b9aa11-fe00-4196-b87b-ea442f74f8a4"
 
 [[r2_buckets]]
 binding = "EVENT_BLOB"
@@ -40,8 +45,8 @@ invocation_logs = true
 DUAL_WRITE_ENABLED = "false"
 READ_SOURCE = "d1"
 GOOGLE_CLIENT_ID = "657803018014-i22ghjh6ft77so1lcet5uj6lfludrvr1.apps.googleusercontent.com"
-AUTH_REDIRECT_URI = "https://payetonhook-worker.loiu92.workers.dev/auth/google/callback"
-DASHBOARD_ORIGINS = "https://payetonhook-dashboard.pages.dev,*.payetonhook-dashboard.pages.dev"
+AUTH_REDIRECT_URI = "https://api.payetonhook.l92-labs.com/auth/google/callback"
+DASHBOARD_ORIGINS = "https://payetonhook.l92-labs.com"
 RATE_LIMIT_PER_MINUTE_PROJECT = "1200"
 RATE_LIMIT_PER_MINUTE_IP = "240"
 ALERT_WEBHOOK_URL = ""

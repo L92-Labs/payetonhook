@@ -2,6 +2,8 @@
 
 Self-hostable webhook relay and testing platform with durable ingestion, fan-out delivery, retry semantics, replay, and a local development tunnel.
 
+**Live:** dashboard at <https://payetonhook.l92-labs.com>, API at <https://api.payetonhook.l92-labs.com>.
+
 ## Workspace
 
 - `apps/worker`: Cloudflare Worker (receiver, queue consumer, workflow logic, API).
@@ -33,7 +35,7 @@ Set `VITE_API_BASE` to your Worker URL when building:
 
 ```bash
 cd apps/dashboard
-VITE_API_BASE="https://payetonhook-worker.<subdomain>.workers.dev" npm run build
+VITE_API_BASE="https://api.payetonhook.l92-labs.com" npm run build
 npm run deploy
 ```
 
@@ -42,7 +44,7 @@ npm run deploy
 Run a local receiver and authenticate the CLI once:
 
 ```bash
-relay login --worker-url https://payetonhook-worker.<subdomain>.workers.dev
+relay login --worker-url https://api.payetonhook.l92-labs.com
 ```
 
 Then start tunneling:

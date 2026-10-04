@@ -1,4 +1,4 @@
-const DEFAULT_WORKER_API_BASE = "https://payetonhook-worker.loiu92.workers.dev";
+const DEFAULT_WORKER_API_BASE = "https://api.payetonhook.l92-labs.com";
 const apiBase = import.meta.env.VITE_API_BASE ?? DEFAULT_WORKER_API_BASE;
 let csrfToken: string | null = null;
 
