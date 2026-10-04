@@ -1027,6 +1027,17 @@ button:focus-visible {
   margin-bottom: 0.8rem;
 }
 
+.events-panel .panel-header {
+  padding: 0.85rem 0.85rem 0;
+  margin-bottom: 0.75rem;
+}
+
+.events-panel .event-list,
+.events-panel .event-list-footer {
+  padding-left: 0.85rem;
+  padding-right: 0.85rem;
+}
+
 .panel-header > div {
   display: grid;
   gap: 0.16rem;
@@ -1062,7 +1073,7 @@ button:focus-visible {
 }
 
 .stream-highlight {
-  margin: 0 0.9rem 0.75rem;
+  margin: 0 0.85rem 0.75rem;
   padding: 0.6rem 0.75rem;
   border-radius: var(--r-ctl);
   border: 1px solid var(--line);
