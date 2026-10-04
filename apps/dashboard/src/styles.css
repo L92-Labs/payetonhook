@@ -2820,9 +2820,15 @@ h3 {
 .landing-cta {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
   gap: 0.8rem;
   margin-bottom: 1.8rem;
+}
+
+.landing-cta .login-link,
+.landing-final .login-link {
+  margin-top: 0;
 }
 
 .landing-cta .primary-btn,
