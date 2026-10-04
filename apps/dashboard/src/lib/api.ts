@@ -1,8 +1,16 @@
+import { DEMO_API_BASE, demoRequest } from "./demo";
+
 const DEFAULT_WORKER_API_BASE = "https://api.payetonhook.l92-labs.com";
-const apiBase = import.meta.env.VITE_API_BASE ?? DEFAULT_WORKER_API_BASE;
+// DEMO-ONLY: VITE_DEMO=1 swaps every API call for in-memory fixtures (src/lib/demo.ts).
+// Strictly build-time gated; the Google login flow and real API stay untouched otherwise.
+const DEMO_MODE = import.meta.env.VITE_DEMO === "1";
+const apiBase = DEMO_MODE ? DEMO_API_BASE : (import.meta.env.VITE_API_BASE ?? DEFAULT_WORKER_API_BASE);
 let csrfToken: string | null = null;
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  if (DEMO_MODE) {
+    return demoRequest<T>(path, options);
+  }
   const response = await fetch(`${apiBase}${path}`, {
     credentials: "include",
     ...options
