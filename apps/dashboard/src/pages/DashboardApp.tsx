@@ -6,6 +6,7 @@ import { HeroToolbar, ProjectSummarySection, DashboardDialog } from "./dashboard
 import { DeadLetterView, DLQ_SCAN_LIMIT, type DeadLetterEntry } from "./dashboard/DeadLetterView";
 import { ProjectView } from "./dashboard/ProjectView";
 import { TriageView } from "./dashboard/TriageView";
+import LandingView from "./LandingView";
 import type {
   ApiKeyRow,
   AttemptRow,
@@ -725,20 +726,7 @@ export function DashboardApp() {
 
   if (!me) {
     const loginUrl = `${getApiBase()}/auth/google/start?redirectTo=${encodeURIComponent(window.location.href)}`;
-    return (
-      <main className="layout">
-        <section className="top-shell reveal-1">
-          <div>
-            <p className="eyebrow">Webhook Control Room</p>
-            <h1>Payetonhook</h1>
-            <p className="subtitle">Sign in with Google to manage projects, keys, and event delivery from one place.</p>
-            <a className="primary-btn login-link" href={loginUrl}>
-              Continue with Google
-            </a>
-          </div>
-        </section>
-      </main>
-    );
+    return <LandingView loginUrl={loginUrl} />;
   }
 
   return (
