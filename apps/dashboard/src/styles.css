@@ -2825,6 +2825,20 @@ h3 {
   margin-bottom: 1.8rem;
 }
 
+.landing-cta .primary-btn,
+.landing-cta .ghost-btn {
+  min-width: 12.5rem;
+  min-height: 2.8rem;
+  padding-inline: 1.2rem;
+  font-size: 0.85rem;
+}
+
+.landing-nav-github {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
 .landing-ingress {
   display: inline-block;
   text-align: left;

@@ -1,3 +1,5 @@
+import { Github } from "lucide-react";
+
 const REPO_URL = "https://github.com/L92-Labs/payetonhook";
 
 const FEATURES = [
@@ -76,7 +78,7 @@ export default function LandingView({ loginUrl }: { loginUrl: string }) {
           <a href="#features">Features</a>
           <a href="#how">How it works</a>
           <a href="#faq">FAQ</a>
-          <a className="landing-nav-github" href={REPO_URL}>GitHub</a>
+          <a className="landing-nav-github" href={REPO_URL}><Github size={15} aria-hidden="true" />GitHub</a>
         </nav>
       </header>
 
@@ -95,7 +97,7 @@ export default function LandingView({ loginUrl }: { loginUrl: string }) {
           <a className="primary-btn login-link" href={loginUrl}>
             Continue with Google
           </a>
-          <a className="ghost-btn" href={REPO_URL}>View source</a>
+          <a className="ghost-btn" href={REPO_URL}><Github size={15} aria-hidden="true" />View source</a>
         </div>
         <code className="landing-ingress reveal-4" role="img" aria-label="Example ingress URL and curl">
           <span className="prompt">$</span> curl -X POST \<br />
