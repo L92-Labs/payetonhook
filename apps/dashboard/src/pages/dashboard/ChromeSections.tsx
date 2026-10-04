@@ -10,7 +10,7 @@ type HeroToolbarProps = {
   onLogout: () => void;
   onProjectSelect: (event: ChangeEvent<HTMLSelectElement>) => void;
   projects: ProjectRow[];
-  selectedProjectId: string | null;
+  selectedProjectSlug: string | null;
 };
 
 export function HeroToolbar({
@@ -21,7 +21,7 @@ export function HeroToolbar({
   onLogout,
   onProjectSelect,
   projects,
-  selectedProjectId
+  selectedProjectSlug
 }: HeroToolbarProps) {
   return (
     <section className="workspace-toolbar reveal-1">
@@ -36,12 +36,12 @@ export function HeroToolbar({
             <span>Project</span>
             <select
               className="project-select project-select-compact"
-              value={selectedProjectId ?? ""}
+              value={selectedProjectSlug ?? ""}
               onChange={onProjectSelect}
               aria-label="Select project"
             >
               {projects.map((project) => (
-                <option key={project.id} value={project.id}>
+                <option key={project.id} value={project.slug}>
                   {project.name}
                 </option>
               ))}
@@ -58,6 +58,15 @@ export function HeroToolbar({
             aria-selected={activeView === "events"}
           >
             Events
+          </button>
+          <button
+            className={`nav-tab ${activeView === "dead-letters" ? "active" : ""}`}
+            onClick={() => onActiveViewChange("dead-letters")}
+            type="button"
+            role="tab"
+            aria-selected={activeView === "dead-letters"}
+          >
+            Dead letters
           </button>
           <button
             className={`nav-tab ${activeView === "project" ? "active" : ""}`}
@@ -80,7 +89,9 @@ export function HeroToolbar({
         {isPending ? (
           <span className="muted">Updating project context…</span>
         ) : activeView === "events" ? (
-          <span className="muted">Events stays primary. Use `/`, `J/K`, and `R` for fast triage.</span>
+          <span className="muted">Events stays primary. Use `/`, `J/K`, and `R` for fast triage. The URL addresses the open event.</span>
+        ) : activeView === "dead-letters" ? (
+          <span className="muted">Dead letters list events whose latest delivery attempt failed. Open one to inspect and replay.</span>
         ) : (
           <span className="muted">Project keeps settings, endpoints, keys, monitoring, and tunnel utilities together.</span>
         )}

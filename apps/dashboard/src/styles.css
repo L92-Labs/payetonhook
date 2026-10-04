@@ -2505,6 +2505,61 @@ h3 {
   grid-template-columns: minmax(12rem, 1fr) 7rem 8rem minmax(12rem, 1fr) auto;
 }
 
+.dlq-table-grid {
+  grid-template-columns: minmax(13rem, 1.1fr) minmax(14rem, 1.4fr) minmax(9rem, 0.8fr) 7rem auto;
+}
+
+.dlq-scope-note {
+  margin: -0.4rem 0 0.9rem;
+  font-size: 0.8rem;
+}
+
+.dlq-failures {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.dlq-failure {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.dlq-failure code {
+  color: var(--danger);
+  font-size: 0.78rem;
+}
+
+.dlq-failure small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dlq-age {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.84rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.dlq-age small {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.section-status-link {
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .resource-primary {
   display: grid;
   gap: 0.2rem;

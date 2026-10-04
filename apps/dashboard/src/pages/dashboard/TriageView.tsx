@@ -19,6 +19,7 @@ type TriageViewProps = {
   latestEvent: EventRow | null;
   onCopyText: (text: string, label: string) => void;
   onLoadMore: () => void;
+  onOpenDeadLetters: () => void;
   onReplayEvent: () => void;
   onSelectEvent: (eventId: string) => void;
   prettyPayload: string;
@@ -48,6 +49,7 @@ export function TriageView({
   latestEvent,
   onCopyText,
   onLoadMore,
+  onOpenDeadLetters,
   onReplayEvent,
   onSelectEvent,
   prettyPayload,
@@ -223,7 +225,11 @@ export function TriageView({
             <section className="detail-section">
               <div className="detail-section-head">
                 <h3>Delivery Attempts</h3>
-                {deadLettersCount > 0 ? <span className="section-status danger">{deadLettersCount} failed</span> : null}
+                {deadLettersCount > 0 ? (
+                  <button className="section-status danger section-status-link" onClick={onOpenDeadLetters} type="button">
+                    {deadLettersCount} failed · view dead letters
+                  </button>
+                ) : null}
               </div>
               <ul className="attempt-list">
                 {attempts.length ? (
