@@ -30,9 +30,17 @@ max_batch_timeout = 5
 name = "TUNNEL_HUB"
 class_name = "TunnelHub"
 
+[[durable_objects.bindings]]
+name = "DEMO_HUB"
+class_name = "DemoRoom"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["TunnelHub"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["DemoRoom"]
 
 [triggers]
 crons = ["0 * * * *"]
