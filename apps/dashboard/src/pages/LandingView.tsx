@@ -1,4 +1,5 @@
 import { Github } from "lucide-react";
+import LandingDemo from "./LandingDemo";
 
 const REPO_URL = "https://github.com/L92-Labs/payetonhook";
 
@@ -99,11 +100,7 @@ export default function LandingView({ loginUrl }: { loginUrl: string }) {
           </a>
           <a className="ghost-btn" href={REPO_URL}><Github size={15} aria-hidden="true" />View source</a>
         </div>
-        <code className="landing-ingress reveal-4" role="img" aria-label="Example ingress URL and curl">
-          <span className="prompt">$</span> curl -X POST \<br />
-          &nbsp;&nbsp;https://api.payetonhook.l92-labs.com/in/your-project \<br />
-          &nbsp;&nbsp;-d &apos;{"{"}"type": "payment_intent.succeeded"{"}"}&apos;
-        </code>
+        <LandingDemo />
       </section>
 
       <section className="landing-shot reveal-4" aria-label="Payetonhook dashboard screenshot">
