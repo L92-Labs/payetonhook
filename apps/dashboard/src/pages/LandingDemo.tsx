@@ -6,6 +6,9 @@ type DemoEvent = {
   method: string;
   received_at: string;
   body: string;
+  path?: string;
+  size?: number;
+  contentType?: string;
 };
 
 const SLOT_KEY = "demo-slot";
@@ -60,6 +63,14 @@ function formatTime(iso: string): string {
   return date.toLocaleTimeString([], { hour12: false });
 }
 
+function prettyBody(body: string): string {
+  try {
+    return JSON.stringify(JSON.parse(body), null, 2);
+  } catch {
+    return body;
+  }
+}
+
 function bodyPreview(body: string): string {
   const oneLine = body.replace(/\s+/g, " ").trim();
   return oneLine.length > 400 ? `${oneLine.slice(0, 400)}…` : oneLine;
@@ -72,6 +83,7 @@ export default function LandingDemo() {
   const [reconnecting, setReconnecting] = useState(false);
   const [sending, setSending] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
   const payloadIndex = useRef(0);
 
   const ingressUrl = `${getApiBase()}/in/demo/${slot}`;
@@ -165,15 +177,35 @@ export default function LandingDemo() {
             Waiting for your first webhook — hit Send test event or POST to the URL above.
           </li>
         ) : (
-          events.map((event) => (
-            <li key={event.id} className="landing-demo-event">
-              <span className="led led-live" aria-hidden="true" />
-              <span className="landing-demo-id">{event.id}</span>
-              <time className="landing-demo-time">{formatTime(event.received_at)}</time>
-              <span className="chip">{event.method}</span>
-              <span className="landing-demo-body">{bodyPreview(event.body) || "—"}</span>
-            </li>
-          ))
+          events.map((event) => {
+            const open = openId === event.id;
+            return (
+              <li key={event.id} className={`landing-demo-event ${open ? "open" : ""}`}>
+                <button
+                  type="button"
+                  className="landing-demo-row"
+                  onClick={() => setOpenId(open ? null : event.id)}
+                  aria-expanded={open}
+                >
+                  <span className="led led-live" aria-hidden="true" />
+                  <span className="landing-demo-id">{event.id}</span>
+                  <time className="landing-demo-time">{formatTime(event.received_at)}</time>
+                  <span className="chip">{event.method}</span>
+                  <span className="landing-demo-body">{bodyPreview(event.body) || "—"}</span>
+                  <span className="landing-demo-chevron" aria-hidden="true">{open ? "−" : "+"}</span>
+                </button>
+                {open ? (
+                  <div className="landing-demo-detail">
+                    <p className="landing-demo-detail-meta">
+                      {event.path ?? "/in/demo"} · {event.size ?? event.body.length} bytes
+                      {event.contentType ? ` · ${event.contentType}` : ""}
+                    </p>
+                    <pre>{prettyBody(event.body) || "—"}</pre>
+                  </div>
+                ) : null}
+              </li>
+            );
+          })
         )}
       </ul>
       {reconnecting && <p className="landing-demo-reconnecting">live connection lost, retrying…</p>}
