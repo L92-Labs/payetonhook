@@ -62,7 +62,7 @@ export function LineChart({
       className="line-chart"
       role="img"
       aria-label={ariaLabel}
-      style={{ color: "var(--accent, #65e7d4)" }}
+      style={{ color: "var(--accent, #9db8ae)" }}
     >
       {coords.length > 1 ? (
         <polyline fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" points={polylinePoints} />
