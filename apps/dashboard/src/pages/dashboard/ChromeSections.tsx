@@ -80,7 +80,9 @@ export function HeroToolbar({
         {isPending ? (
           <span className="muted">Updating project context…</span>
         ) : activeView === "events" ? (
-          <span className="muted">Events stays primary. Use `/`, `J/K`, and `R` for fast triage.</span>
+          <span className="muted">
+            Events stays primary. Use <kbd>/</kbd> to search, <kbd>J</kbd>/<kbd>K</kbd> to step, <kbd>R</kbd> to replay.
+          </span>
         ) : (
           <span className="muted">Project keeps settings, endpoints, keys, monitoring, and tunnel utilities together.</span>
         )}
