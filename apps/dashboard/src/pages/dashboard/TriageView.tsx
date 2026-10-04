@@ -20,6 +20,7 @@ type TriageViewProps = {
   onCopyText: (text: string, label: string) => void;
   onLoadMore: () => void;
   onReplayEvent: () => void;
+  onResetFilters?: () => void;
   onSelectEvent: (eventId: string) => void;
   prettyPayload: string;
   selectedEvent: string | null;
@@ -49,6 +50,7 @@ export function TriageView({
   onCopyText,
   onLoadMore,
   onReplayEvent,
+  onResetFilters,
   onSelectEvent,
   prettyPayload,
   selectedEvent,
@@ -80,8 +82,19 @@ export function TriageView({
             : filteredEvents.length === 0 ? (
               <li>
                 <div className="empty-state subtle">
-                  <h3>No matching events</h3>
-                  <p className="muted">Try resetting filters or wait for the next webhook to arrive.</p>
+                  <h3>{events.length === 0 ? "Stream is quiet" : "No matching events"}</h3>
+                  <p className="muted">
+                    {events.length === 0
+                      ? "POST to the ingress URL above and the event will land here instantly."
+                      : "Filters are hiding every event in this window."}
+                  </p>
+                  {events.length > 0 && onResetFilters ? (
+                    <span className="empty-state-actions">
+                      <button className="ghost-btn" onClick={onResetFilters} type="button">
+                        Reset filters
+                      </button>
+                    </span>
+                  ) : null}
                 </div>
               </li>
             )
@@ -126,7 +139,7 @@ export function TriageView({
               {isLoadingMoreEvents ? "Loading…" : "Load more"}
             </button>
           ) : events.length > 0 ? (
-            <span className="muted" style={{ fontSize: "0.78rem" }}>End of stream</span>
+            <span className="muted">End of stream</span>
           ) : null}
         </div>
       </aside>
@@ -216,7 +229,17 @@ export function TriageView({
                 <div className="detail-section-head">
                   <h3>Payload</h3>
                 </div>
-                <pre className="payload-box">{isLoadingDetail ? "Loading…" : prettyPayload}</pre>
+                {isLoadingDetail ? (
+                  <div className="payload-skeleton" aria-hidden="true">
+                    <div className="skeleton-line" />
+                    <div className="skeleton-line w-60" />
+                    <div className="skeleton-line" />
+                    <div className="skeleton-line w-40" />
+                    <div className="skeleton-line" />
+                  </div>
+                ) : (
+                  <pre className="payload-box">{prettyPayload}</pre>
+                )}
               </section>
             )}
 
@@ -226,13 +249,20 @@ export function TriageView({
                 {deadLettersCount > 0 ? <span className="section-status danger">{deadLettersCount} failed</span> : null}
               </div>
               <ul className="attempt-list">
-                {attempts.length ? (
+                {isLoadingDetail && attempts.length === 0 ? (
+                  Array.from({ length: 2 }).map((_, index) => (
+                    <li key={index} aria-hidden="true">
+                      <span className="attempt-dot" />
+                      <span className="skeleton-line" style={{ width: "100%" }} />
+                    </li>
+                  ))
+                ) : attempts.length ? (
                   attempts.map((attempt) => (
                     <li key={attempt.id}>
                       <span className={`attempt-dot ${attempt.success === 1 ? "ok" : "ko"}`} />
                       <strong>#{attempt.attempt_no}</strong>
                       <span>{attempt.success === 1 ? "Delivered" : "Failed"}</span>
-                      <span style={{ fontVariantNumeric: "tabular-nums" }}>{attempt.status_code ?? "timeout"}</span>
+                      <span>{attempt.status_code ?? "timeout"}</span>
                       <small>{attempt.error_message ?? ""}</small>
                     </li>
                   ))

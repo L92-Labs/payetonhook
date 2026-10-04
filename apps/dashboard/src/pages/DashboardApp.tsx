@@ -174,6 +174,14 @@ export function DashboardApp() {
     setTimeout(() => setToast(null), 2000);
   }
 
+  function resetFilters() {
+    setFromDateTime("");
+    setToDateTime("");
+    setShowReplaysOnly(false);
+    setDensity("comfortable");
+    setTimeZoneMode("local");
+  }
+
   async function bootstrap() {
     try {
       const [meRes, projectRes] = await Promise.all([
@@ -673,6 +681,11 @@ export function DashboardApp() {
             <p className="eyebrow">Webhook Control Room</p>
             <h1>Payetonhook</h1>
             <p className="subtitle">Sign in with Google to manage projects, keys, and event delivery from one place.</p>
+            <ul className="login-points">
+              <li>Durable ingestion with fan-out delivery, retries and replay</li>
+              <li>Dead-letter triage with full payloads and attempt history</li>
+              <li>Local tunnel: forward production webhooks to your terminal</li>
+            </ul>
             <a className="primary-btn login-link" href={loginUrl}>
               Continue with Google
             </a>
@@ -784,13 +797,7 @@ export function DashboardApp() {
             <p className="keyboard-hint">{filteredEvents.length} of {events.length} events shown</p>
             <button
               className="ghost-btn"
-              onClick={() => {
-                setFromDateTime("");
-                setToDateTime("");
-                setShowReplaysOnly(false);
-                setDensity("comfortable");
-                setTimeZoneMode("local");
-              }}
+              onClick={resetFilters}
             >
               Reset filters
             </button>
@@ -798,7 +805,19 @@ export function DashboardApp() {
         </div>
       ) : null}
 
-      {error ? <p className="error">{error}</p> : null}
+      {error ? (
+        <div className="error" role="alert">
+          <span>{error}</span>
+          <span className="error-actions">
+            <button className="ghost-btn" onClick={() => void loadEvents()} disabled={!selectedProjectId || isRefreshing} type="button">
+              {isRefreshing ? "Retrying…" : "Retry"}
+            </button>
+            <button className="ghost-btn" onClick={() => setError(null)} type="button">
+              Dismiss
+            </button>
+          </span>
+        </div>
+      ) : null}
       {newApiKey ? (
         <p className="new-key">
           <span aria-live="polite">
@@ -809,7 +828,6 @@ export function DashboardApp() {
             onClick={() => copyText(newApiKey, "API key")}
             aria-label="Copy API key"
             type="button"
-            style={{ marginLeft: "0.5rem" }}
           >
             <Copy aria-hidden="true" />
           </button>
@@ -840,6 +858,7 @@ export function DashboardApp() {
           onCopyText={copyText}
           onLoadMore={() => void loadEvents({ append: true })}
           onReplayEvent={() => void replayEvent()}
+          onResetFilters={resetFilters}
           onSelectEvent={(eventId) => void selectEvent(eventId)}
           prettyPayload={prettyPayload}
           selectedEvent={selectedEvent}

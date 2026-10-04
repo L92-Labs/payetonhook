@@ -32,13 +32,13 @@ export function LineChart({
   ariaLabel?: string;
   points: TimeseriesPoint[];
 }) {
-  if (!points.length) return <p className="muted" style={{ fontSize: "0.82rem" }}>No trend data yet.</p>;
+  if (!points.length) return <p className="muted chart-empty">No trend data yet.</p>;
   const width = 420;
   const height = 100;
   const normalizedPoints = points
     .map((p) => ({ bucketStart: Number(p.bucket_start), count: Number(p.count) }))
     .filter((p) => Number.isFinite(p.bucketStart) && Number.isFinite(p.count));
-  if (!normalizedPoints.length) return <p className="muted" style={{ fontSize: "0.82rem" }}>No trend data yet.</p>;
+  if (!normalizedPoints.length) return <p className="muted chart-empty">No trend data yet.</p>;
 
   const maxY = Math.max(...normalizedPoints.map((p) => p.count), 1);
   const minX = normalizedPoints[0].bucketStart;
@@ -51,7 +51,7 @@ export function LineChart({
       return { x, y };
     })
     .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y));
-  if (!coords.length) return <p className="muted" style={{ fontSize: "0.82rem" }}>No trend data yet.</p>;
+  if (!coords.length) return <p className="muted chart-empty">No trend data yet.</p>;
 
   const polylinePoints = coords.map((point) => `${point.x},${point.y}`).join(" ");
   const latestPoint = coords[coords.length - 1];
@@ -62,7 +62,7 @@ export function LineChart({
       className="line-chart"
       role="img"
       aria-label={ariaLabel}
-      style={{ color: "var(--accent, #65e7d4)" }}
+      style={{ color: "var(--accent, #e6a23c)" }}
     >
       {coords.length > 1 ? (
         <polyline fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" points={polylinePoints} />
