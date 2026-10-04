@@ -1,0 +1,49 @@
+name = "payetonhook-worker"
+account_id = "8d0d123c1ddfd6a019c11046fd5267be"
+main = "src/index.ts"
+compatibility_date = "2025-02-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "payetonhook"
+database_id = "742a7a5f-e61d-4994-abe1-346370228693"
+
+[[r2_buckets]]
+binding = "EVENT_BLOB"
+bucket_name = "payetonhook-events"
+
+[[queues.producers]]
+binding = "WEBHOOK_QUEUE"
+queue = "payetonhook-webhook-queue"
+
+[[queues.consumers]]
+queue = "payetonhook-webhook-queue"
+max_batch_size = 10
+max_batch_timeout = 5
+
+[[durable_objects.bindings]]
+name = "TUNNEL_HUB"
+class_name = "TunnelHub"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["TunnelHub"]
+
+[triggers]
+crons = ["0 * * * *"]
+
+[observability.logs]
+enabled = false
+invocation_logs = true
+
+[vars]
+DUAL_WRITE_ENABLED = "false"
+READ_SOURCE = "d1"
+GOOGLE_CLIENT_ID = "657803018014-i22ghjh6ft77so1lcet5uj6lfludrvr1.apps.googleusercontent.com"
+AUTH_REDIRECT_URI = "https://payetonhook-worker.loiu92.workers.dev/auth/google/callback"
+DASHBOARD_ORIGINS = "https://payetonhook-dashboard.pages.dev,*.payetonhook-dashboard.pages.dev"
+RATE_LIMIT_PER_MINUTE_PROJECT = "1200"
+RATE_LIMIT_PER_MINUTE_IP = "240"
+ALERT_WEBHOOK_URL = ""
+ALERT_MIN_INTERVAL_MS = "300000"
+RETENTION_SWEEP_BATCH_SIZE = "250"
