@@ -67,6 +67,21 @@ relay tunnel --to http://localhost:3000/webhook
 
 ## Database migration readiness
 
+### Delivery capability
+
+Apply migration `0014_delivery_receipts.sql` before promoting the new Worker. Each event/destination
+pair has a fenced lease and a durable delivered/exhausted receipt. Ordinary queue redelivery skips
+terminal destinations and resumes the persisted attempt budget. Explicit replay creates a new
+event ID and deliberately delivers again. Receipts and attempt history commit atomically.
+
+Delivery deadlines cover response headers and body; capture is limited to 1 MiB. Retry budgets are
+bounded to 20 retries and backoff to 30 seconds. Database/R2 failures cause queue retry rather than
+an immediate HTTP retry. HTTP delivery remains at least once: a receiver may accept a request
+before receipt persistence fails. Receivers should deduplicate the stable `x-webhook-id`.
+
+Run Worker tests on Node 24 (`npm test -w @payetonhook/worker`); the receipt tests execute actual
+SQL migrations and exercise leases, rollback, body deadlines, replay and infrastructure failure.
+
 The project includes storage abstraction and cutover guidance:
 
 - `apps/worker/src/lib/db.ts`

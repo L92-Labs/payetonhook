@@ -1,0 +1,10 @@
+{
+  "apps/worker/src/lib/r2.ts:backend-no-raw-bindings:forbidden binding: EVENT_BLOB": {
+    "sha256": "4581636565160d16994f01ac4bf3af65fe8f3e68160eb5589f7610d1697f1bf8",
+    "reason": "Existing backend bypass; migrate to reviewed AI/storage capability before editing this source"
+  },
+  "apps/worker/src/lib/retention.ts:backend-no-raw-bindings:forbidden binding: EVENT_BLOB": {
+    "sha256": "d383a87da099e3cdcce34f35f75a2ccf11db19f0f2e926c200aa916b4031eaeb",
+    "reason": "Existing backend bypass; migrate to reviewed AI/storage capability before editing this source"
+  }
+}
