@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "roots": [
+    "apps",
+    "packages"
+  ],
+  "rules": [
+    {
+      "id": "backend-no-provider-sdk",
+      "files": [
+        "**"
+      ],
+      "except": [
+        "apps/worker/src/lib/delivery-capability.ts",
+        "**/tests/**",
+        "**/test/**",
+        "**/test-runtime/**",
+        "**/.build-test/**"
+      ],
+      "imports": [
+        "openai",
+        "@anthropic-ai/sdk",
+        "@ai-sdk/*",
+        "@google/generative-ai",
+        "@google/genai",
+        "workers-ai-provider",
+        "@aws-sdk/*",
+        "@google-cloud/storage",
+        "@google-cloud/firestore",
+        "firebase-admin",
+        "@azure/storage-blob",
+        "boto3",
+        "botocore",
+        "google.cloud.storage",
+        "google.cloud.firestore",
+        "anthropic",
+        "langchain_openai",
+        "langchain_anthropic",
+        "github.com/openai/openai-go",
+        "github.com/sashabaranov/go-openai",
+        "github.com/anthropics/anthropic-sdk-go",
+        "github.com/aws/aws-sdk-go",
+        "github.com/aws/aws-sdk-go-v2",
+        "cloud.google.com/go/storage",
+        "cloud.google.com/go/firestore",
+        "github.com/Azure/azure-sdk-for-go/sdk/storage"
+      ],
+      "guidance": "Use an AI/storage capability; provider SDKs belong in reviewed adapters"
+    },
+    {
+      "id": "backend-no-raw-bindings",
+      "files": [
+        "**"
+      ],
+      "except": [
+        "apps/worker/src/lib/delivery-capability.ts",
+        "**/tests/**",
+        "**/test/**",
+        "**/test-runtime/**",
+        "**/.build-test/**"
+      ],
+      "properties": [
+        "EVENT_BLOB"
+      ],
+      "guidance": "Use an AI/storage capability; raw Worker bindings belong in reviewed adapters"
+    }
+  ]
+}

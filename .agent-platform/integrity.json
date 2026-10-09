@@ -1,0 +1,28 @@
+{
+  "version": "1.1.0",
+  "source": "loiu92/cf-bootstrap",
+  "files": {
+    "README.md": "81c9d48ac641d76262bf632d9ed849e9779f3e0a9a5038e9d2931c6ed083050a",
+    "blueprints/catalog.d.ts": "8135b91cec1d4c9af9080ae472f9f7cc7f8c578146c77812f12d1317a3baf4d8",
+    "blueprints/catalog.js": "ca8bb4f8280db25dc7542b8c48c3ef8a96f7ea1464b5d2a0d2f36a9056d329af",
+    "policy/check.mjs": "5b20574e04ef2a8254c88910a9532485797a1557433fb899f63176f07d7578e0",
+    "policy/glob.mjs": "c717705395a11dd0186e2a8ae4e11e469a2de39a77da5225b4545e91cd745edc",
+    "policy/goimports.go": "f9ef203c330fefc53768fde1ce2792cd2c3526fbeb0da83924d96ac965e4ae24",
+    "policy/python.py": "89b485bbde80166b0660f379e117ceb442b77df7b28e24f10280c1450d750c8f",
+    "policy/typescript.mjs": "f203b4779b18f12bbe3430213abc4e69d6c44e4ba69bb54575fd778c915c3b2c",
+    "runtime/command.d.ts": "d3cde63f5a2383529dd4aa2677146fbda912696d2d4772d0d1a30cef18949d93",
+    "runtime/command.js": "b19c247ee91dbc46e7d34d86e8c006b96c11dd98226cf07176da8c131fe873e3",
+    "runtime/http.d.ts": "0b0077f9a7bda56dcbf0d42c1db7eb84b73c8cf52685f3c780a8c1c6ff0e8f16",
+    "runtime/http.js": "2d2545661d3ac83548bdf168cd5b13f7bc789d25b9700736be04e0f77bac4267",
+    "runtime/logging.d.ts": "17171d78545949969f87cee5d0eccf525559545523dc349e89720a74abef97ba",
+    "runtime/logging.js": "4326f5f9d976ffb89d94ce6143440973cd9d267b24356b1b19833b943effb590",
+    "runtime/package.json": "f302c90c74e2d63ec378c0b972e2e5aa1d3efaccc2abfaed45ac146543651c3c",
+    "runtime/query.d.ts": "6fa21510f679d86b21fe36c12af0c27bbe7e10368171ecc3a5fbdb2ce1bc967e",
+    "runtime/query.js": "25389818e183f1bbe5203fab64021d0f23c96dcd4c9f4e0d8c318d547f1afab6",
+    "runtime/request.d.ts": "ffaa5027193f055e5b9f393e1bf6a380575a8b2bcf8188d662a3b0e6859fa55b",
+    "runtime/request.js": "ab6e6dc4a88dbe7898813c9e13d0ab6721b6d4a47b98e3e111264d59871a6907",
+    "runtime/task.d.ts": "b76f4619a1d40cb88c7558a8390cb76f292f4c1c80cac6a9ac4f64b70740542e",
+    "runtime/task.js": "054ec3bf6fe6cee0356aa3baf5daf2ac071e5aa972124fe6b0764758ddcaf1dc",
+    "tests/runtime.test.mjs": "4858ec4c97265c270fe1b61603b681a65de0d7c8a49ac5f3543e8ad97df207ba"
+  }
+}

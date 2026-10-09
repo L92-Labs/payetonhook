@@ -1,0 +1,14 @@
+{
+  "name": "@l92/agent-platform",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./logging": { "types": "./logging.d.ts", "default": "./logging.js" },
+    "./request": { "types": "./request.d.ts", "default": "./request.js" },
+    "./http": { "types": "./http.d.ts", "default": "./http.js" },
+    "./task": { "types": "./task.d.ts", "default": "./task.js" },
+    "./query": { "types": "./query.d.ts", "default": "./query.js" },
+    "./command": { "types": "./command.d.ts", "default": "./command.js" }
+  }
+}

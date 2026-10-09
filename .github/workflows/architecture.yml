@@ -1,0 +1,20 @@
+name: architecture
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  boundaries:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+      - run: npm install --prefix "$RUNNER_TEMP/agent-policy" --ignore-scripts --no-audit --no-fund typescript@6.0.3
+      - run: node .agent-platform/policy/check.mjs
+        env:
+          AGENT_TYPESCRIPT: ${{ runner.temp }}/agent-policy/node_modules/typescript/lib/typescript.js
+      - run: node --test .agent-platform/tests/runtime.test.mjs
