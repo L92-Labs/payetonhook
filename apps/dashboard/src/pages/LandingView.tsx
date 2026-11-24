@@ -1,4 +1,5 @@
-import { Github } from "lucide-react";
+import { useRef, useState } from "react";
+import { Github, Menu, X } from "lucide-react";
 import LandingDemo from "./LandingDemo";
 
 const REPO_URL = "https://github.com/L92-Labs/payetonhook";
@@ -112,16 +113,44 @@ const FAQ = [
 ];
 
 export default function LandingView({ loginUrl }: { loginUrl: string }) {
+  // Phone navigation only: the in-page links collapse behind a toggle below 900px.
+  // Desktop shows them inline whatever this state is.
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+
   return (
     <main className="landing">
-      <header className="landing-header">
+      <header className={`landing-header ${menuOpen ? "menu-open" : ""}`}>
         <a className="landing-brand" href="/">
           payetonhook
         </a>
-        <nav className="landing-nav">
-          <a href="#features">Features</a>
-          <a href="#how">How it works</a>
-          <a href="#faq">FAQ</a>
+        <nav
+          className="landing-nav"
+          aria-label="Primary"
+          onKeyDown={(event) => {
+            if (event.key === "Escape" && menuOpen) {
+              setMenuOpen(false);
+              menuButtonRef.current?.focus();
+            }
+          }}
+        >
+          <button
+            ref={menuButtonRef}
+            type="button"
+            className="landing-menu-toggle"
+            aria-expanded={menuOpen}
+            aria-controls="landing-nav-links"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            {menuOpen ? <X size={15} aria-hidden="true" /> : <Menu size={15} aria-hidden="true" />}
+            <span>{menuOpen ? "Close" : "Menu"}</span>
+          </button>
+          <div className="landing-nav-links" id="landing-nav-links">
+            <a href="#features" onClick={() => setMenuOpen(false)}>Features</a>
+            <a href="#how" onClick={() => setMenuOpen(false)}>How it works</a>
+            <a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
+          </div>
           <a className="landing-nav-github" href={REPO_URL}><Github size={15} aria-hidden="true" />GitHub</a>
         </nav>
       </header>
@@ -223,11 +252,15 @@ export default function LandingView({ loginUrl }: { loginUrl: string }) {
       </section>
 
       <section className="landing-final">
-        <h2>Your next webhook is already on its way.</h2>
-        <p>Be ready for it. Sign in and point a provider at your ingress URL.</p>
-        <a className="primary-btn login-link landing-final-btn" href={loginUrl}>
-          Continue with Google
-        </a>
+        <div className="landing-final-inner">
+          <div>
+            <h2>Your next webhook is already on its way.</h2>
+            <p>Be ready for it. Sign in and point a provider at your ingress URL.</p>
+          </div>
+          <a className="primary-btn login-link landing-final-btn" href={loginUrl}>
+            Continue with Google
+          </a>
+        </div>
       </section>
 
       <footer className="landing-footer">

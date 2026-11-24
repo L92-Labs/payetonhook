@@ -2777,6 +2777,16 @@ h3 {
   text-transform: uppercase;
 }
 
+.landing-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+}
+
+.landing-menu-toggle {
+  display: none;
+}
+
 .landing-nav a {
   color: var(--muted);
   text-decoration: none;
@@ -3199,33 +3209,43 @@ h3 {
   line-height: 1.65;
 }
 
+/* Closing band: full-bleed, so the page lands on one edge instead of a floating
+   card. Statement on the left, the single action on the right; stacks below 720px. */
 .landing-final {
-  width: min(48rem, calc(100% - 2rem));
-  margin: clamp(2.5rem, 6vw, 4rem) auto;
-  text-align: center;
-  border: 1px solid var(--line);
-  border-radius: var(--r-surface);
+  margin-top: clamp(2.5rem, 6vw, 4rem);
+  padding: clamp(2.25rem, 5vw, 3.5rem) clamp(1rem, 4vw, 3rem);
+  border-top: 1px solid var(--line);
   background:
-    radial-gradient(30rem 14rem at 50% 0%, rgba(95, 219, 143, 0.08), transparent 65%),
+    radial-gradient(60rem 18rem at 18% 0%, rgba(95, 219, 143, 0.08), transparent 60%),
     var(--panel);
-  padding: clamp(2rem, 5vw, 3.2rem) clamp(1.2rem, 4vw, 3rem);
+}
+
+.landing-final-inner {
+  width: min(72rem, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.5rem 3rem;
 }
 
 .landing-final h2 {
-  margin: 0 0 0.7rem;
+  margin: 0 0 0.6rem;
   font-size: clamp(1.5rem, 3.4vw, 2.1rem);
   letter-spacing: -0.01em;
   text-wrap: balance;
 }
 
 .landing-final p {
-  margin: 0 0 1.6rem;
+  margin: 0;
   color: var(--muted);
 }
 
 .landing-final-btn {
+  justify-self: end;
   font-size: 1rem;
   padding: 0.8rem 1.6rem;
+  white-space: nowrap;
 }
 
 .landing-footer {
@@ -3304,8 +3324,65 @@ h3 {
     border-bottom: 1.5px solid var(--accent);
   }
 
-  .landing-nav a:not(.landing-nav-github) {
+  /* Phone navigation: the in-page links collapse behind a toggle instead of being
+     dropped. The open panel hangs from the sticky header, so nothing shifts layout. */
+  .landing-nav {
+    gap: 0.6rem;
+  }
+
+  .landing-menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2.2rem;
+    padding: 0.45rem 0.8rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-chip);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color var(--t-1) var(--ease), border-color var(--t-1) var(--ease);
+  }
+
+  .landing-menu-toggle:hover,
+  .landing-menu-toggle:focus-visible,
+  .landing-menu-toggle[aria-expanded="true"] {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .landing-nav-links {
     display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0.35rem clamp(1rem, 4vw, 3rem) 0.7rem;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg);
+  }
+
+  .landing-header.menu-open .landing-nav-links {
+    display: flex;
+  }
+
+  .landing-nav-links a {
+    display: block;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
+  }
+
+  .landing-nav-links a:last-child {
+    border-bottom: 0;
   }
 
   .landing-hero {
@@ -3341,6 +3418,30 @@ h3 {
     padding-inline: 0.8rem;
     font-size: 0.8rem;
     white-space: nowrap;
+  }
+}
+
+@media (max-width: 720px) {
+  /* Closing band stacks: statement, then the action at full width. */
+  .landing-final-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-final-btn {
+    justify-self: stretch;
+  }
+}
+
+@media (max-width: 349px) {
+  /* Very narrow phones: icon-only toggle, the accessible name stays on the button. */
+  .landing-menu-toggle {
+    justify-content: center;
+    min-width: 2.2rem;
+    padding-inline: 0.5rem;
+  }
+
+  .landing-menu-toggle span {
+    display: none;
   }
 }
 
