@@ -187,7 +187,6 @@ export default function LandingDemo() {
                   onClick={() => setOpenId(open ? null : event.id)}
                   aria-expanded={open}
                 >
-                  <span className="led led-live" aria-hidden="true" />
                   <span className="landing-demo-id">{event.id}</span>
                   <time className="landing-demo-time">{formatTime(event.received_at)}</time>
                   <span className="chip">{event.method}</span>

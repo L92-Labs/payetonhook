@@ -72,7 +72,6 @@ export default function LandingView({ loginUrl }: { loginUrl: string }) {
     <main className="landing">
       <header className="landing-header">
         <a className="landing-brand" href="/">
-          <span className="led led-live" aria-hidden="true" />
           payetonhook
         </a>
         <nav className="landing-nav">

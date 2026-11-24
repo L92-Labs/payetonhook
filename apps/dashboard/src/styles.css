@@ -2802,15 +2802,17 @@ h3 {
   color: var(--accent);
 }
 
+/* Vertical rhythm is tuned so the live sandbox (the proof) clears the fold on a
+   1280x720 laptop as well as at 1440x900: the top margin tracks viewport height. */
 .landing-hero {
   width: min(62rem, calc(100% - 2rem));
-  margin: clamp(3rem, 8vw, 6rem) auto clamp(2rem, 5vw, 3.5rem);
+  margin: clamp(2.5rem, 8vh, 4.5rem) auto clamp(2rem, 5vw, 3.5rem);
   text-align: center;
 }
 
 .landing-title {
   margin: 0.9rem 0 1.1rem;
-  font-family: var(--font-body);
+  font-family: var(--font-ui);
   font-weight: 700;
   font-size: clamp(2.3rem, 6vw, 4.2rem);
   line-height: 1.08;
@@ -2823,7 +2825,7 @@ h3 {
 }
 
 .landing-sub {
-  margin: 0 auto 1.8rem;
+  margin: 0 auto 1.4rem;
   max-width: 40rem;
   color: var(--muted);
   font-size: 1.02rem;
@@ -2837,7 +2839,7 @@ h3 {
   align-items: center;
   justify-content: center;
   gap: 0.8rem;
-  margin-bottom: 1.8rem;
+  margin-bottom: 2rem;
 }
 
 .landing-cta .login-link,
@@ -3156,12 +3158,39 @@ h3 {
     display: none;
   }
 
-  .landing-demo-row {
-    grid-template-columns: auto auto auto auto 1fr;
+  .landing-hero {
+    margin-top: 2.25rem;
   }
 
-  .landing-demo-body {
-    grid-column: 1 / -1;
+  .landing-title {
+    margin: 0.75rem 0 0.9rem;
+  }
+
+  .landing-sub {
+    margin-bottom: 1.15rem;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Both headline lines fit: "Catch every webhook." stays on one line down to 360px. */
+  .landing-title {
+    font-size: clamp(1.9rem, 8.6vw, 2.3rem);
+  }
+
+  /* Primary and secondary CTA share one row; they stack again if the labels cannot fit. */
+  .landing-cta {
+    gap: 0.7rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .landing-cta .primary-btn,
+  .landing-cta .ghost-btn {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 2.75rem;
+    padding-inline: 0.8rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
   }
 }
 
@@ -3174,7 +3203,7 @@ h3 {
 /* ── Landing demo sandbox ─────────────────────────────────── */
 
 .landing-demo {
-  margin: 1.6rem auto 0;
+  margin: 0 auto;
   width: min(40rem, 100%);
   text-align: left;
   border: 1px solid var(--line);
@@ -3188,6 +3217,22 @@ h3 {
   align-items: center;
   gap: 0.6rem;
   margin-bottom: 0.8rem;
+}
+
+/* Live-state LED, same vocabulary as the console (.attempt-dot). It only marks the
+   real connection state of the sandbox; nothing decorative carries one. */
+.led {
+  display: inline-block;
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--line-strong);
+}
+
+.led-live {
+  background: var(--accent);
+  animation: led-pulse 1.6s ease-in-out infinite;
 }
 
 .landing-demo-title {
@@ -3287,6 +3332,7 @@ h3 {
   font-size: 0.82rem;
 }
 
+/* Rows scroll sideways by design (full payload preview). */
 .landing-demo-event {
   border-bottom: 1px solid var(--line);
   animation: landing-demo-in 200ms var(--ease) both;
@@ -3296,7 +3342,7 @@ h3 {
 
 .landing-demo-row {
   display: grid;
-  grid-template-columns: auto auto auto auto max-content auto;
+  grid-template-columns: auto auto auto max-content auto;
   align-items: baseline;
   gap: 0.55rem;
   padding: 0.5rem 0.75rem;
@@ -3320,10 +3366,26 @@ h3 {
   box-shadow: inset 2px 0 0 var(--accent);
 }
 
+/* The expand chevron sticks to the right edge of the scrollport on a fade, so the
+   affordance stays in view while the preview continues underneath it. */
 .landing-demo-chevron {
+  position: sticky;
+  right: 0;
+  justify-self: end;
+  align-self: center;
+  padding-inline: 0.9rem 0.35rem;
   font-family: var(--font-mono);
   color: var(--muted);
-  padding-inline: 0.25rem;
+  background: linear-gradient(to right, transparent, var(--surface-sunken) 1.1rem);
+}
+
+.landing-demo-row:hover .landing-demo-chevron,
+.landing-demo-event.open .landing-demo-chevron {
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, var(--ink) 3%, var(--surface-sunken)) 1.1rem
+  );
 }
 
 .landing-demo-event.open .landing-demo-chevron {
@@ -3358,10 +3420,6 @@ h3 {
 
 .landing-demo-event:last-child {
   border-bottom: none;
-}
-
-.landing-demo-event .led {
-  align-self: center;
 }
 
 .landing-demo-id {
@@ -3413,5 +3471,62 @@ h3 {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Narrow screens. Declared after the base sandbox rules on purpose: media queries
+   add no specificity, so source order is what lets these win. */
+@media (max-width: 900px) {
+  /* No sideways scroll. Id, time and method share the first line with the chevron
+     at its right end; the payload preview truncates below (expand for the full body). */
+  .landing-demo-event {
+    width: 100%;
+  }
+
+  .landing-demo-row {
+    grid-template-columns: auto auto auto minmax(0, 1fr) auto;
+    row-gap: 0.3rem;
+  }
+
+  .landing-demo-body {
+    grid-column: 1 / -1;
+  }
+
+  .landing-demo-chevron,
+  .landing-demo-row:hover .landing-demo-chevron,
+  .landing-demo-event.open .landing-demo-chevron {
+    position: static;
+    grid-column: -2;
+    grid-row: 1;
+    padding-inline: 0 0.1rem;
+    background: none;
+  }
+
+  /* The full ingress URL wraps instead of scrolling out of view. */
+  .landing-demo-url code {
+    white-space: normal;
+    overflow-x: visible;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Sandbox header: state and slot on the first line, both actions on the second. */
+  .landing-demo-head {
+    flex-wrap: wrap;
+    row-gap: 0.6rem;
+  }
+
+  .landing-demo-actions {
+    margin-left: 0;
+    flex: 1 0 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .landing-demo-actions .landing-demo-send {
+    padding-inline: 0.5rem;
+    font-size: 0.74rem;
+    white-space: nowrap;
   }
 }
