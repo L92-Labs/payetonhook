@@ -1038,7 +1038,9 @@ button:focus-visible {
   padding-right: 0.85rem;
 }
 
-.panel-header > div {
+/* Title group only (always the first child). Scoping keeps action groups such as
+   .header-inline-actions and .seg-control on their own inline-flex display. */
+.panel-header > div:first-child {
   display: grid;
   gap: 0.16rem;
 }
