@@ -2956,6 +2956,77 @@ h3 {
   grid-column: span 2;
 }
 
+.landing-feature-copy {
+  display: grid;
+  gap: 0.55rem;
+  align-content: start;
+  min-width: 0;
+}
+
+/* Wide cards that carry a readout: copy on the left, readout on the right. */
+.landing-feature.has-visual {
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  align-items: center;
+  column-gap: 1.4rem;
+}
+
+/* Sunken mono readout, the console's payload-box treatment. */
+.landing-readout {
+  display: grid;
+  align-content: center;
+  gap: 0.4rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--surface-sunken);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.landing-readout-row {
+  display: grid;
+  grid-template-columns: 5.25rem auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.landing-readout-row .chip {
+  grid-column: 1;
+  justify-self: start;
+  color: var(--accent);
+  border-color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+
+.landing-readout-arrow {
+  grid-column: 2;
+  justify-self: end;
+  color: var(--accent);
+}
+
+.landing-readout-row code {
+  grid-column: 3;
+  justify-self: end;
+  color: var(--code);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.landing-readout-cli {
+  display: block;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+}
+
+.landing-readout-prompt {
+  color: var(--accent);
+}
+
 .landing-feature-meta {
   justify-self: start;
   font-family: var(--font-mono);
@@ -2982,25 +3053,78 @@ h3 {
   line-height: 1.6;
 }
 
+/* How it works: three stations on one rail, in the console's node-and-line vocabulary
+   (.flow-node / .flow-line). Drawn in CSS. Chevrons mark direction; nothing loops,
+   which keeps the brand motion rule (loops are for live state only). */
 .landing-steps {
+  --step-gap: 2.75rem;
+  --station-h: 4.25rem;
   list-style: none;
   margin: 1.4rem 0 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.8rem;
-  counter-reset: step;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: var(--step-gap);
 }
 
 .landing-steps li {
-  border: 1px solid var(--line);
-  border-left: 2px solid var(--accent);
-  border-radius: var(--r-surface);
-  background: var(--panel);
-  padding: 1.2rem 1.3rem;
+  position: relative;
   display: grid;
   gap: 0.5rem;
   align-content: start;
+}
+
+.landing-station {
+  display: grid;
+  align-content: center;
+  gap: 0.3rem;
+  height: var(--station-h);
+  margin-bottom: 0.6rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--accent);
+  border-radius: var(--r-surface);
+  background: var(--surface-sunken);
+}
+
+.landing-station-label {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.landing-station code {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.86rem;
+  color: var(--ink);
+}
+
+/* Rail from each station towards the next one, ending in a CSS chevron. */
+.landing-steps li:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  top: calc(var(--station-h) / 2);
+  left: calc(100% + 0.85rem);
+  width: calc(var(--step-gap) - 1.85rem);
+  height: 1px;
+  background: var(--line-strong);
+}
+
+.landing-steps li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: calc(var(--station-h) / 2 - 0.24rem);
+  left: calc(100% + var(--step-gap) - 0.75rem);
+  width: 0.48rem;
+  height: 0.48rem;
+  border-top: 1.5px solid var(--accent);
+  border-right: 1.5px solid var(--accent);
+  transform: rotate(45deg);
 }
 
 .landing-step-n {
@@ -3152,6 +3276,32 @@ h3 {
 
   .landing-feature.wide {
     grid-column: auto;
+  }
+
+  /* Readouts drop below the copy at full width. */
+  .landing-feature.has-visual {
+    grid-template-columns: 1fr;
+  }
+
+  /* Stations stack. The rail turns down through the gap between steps, on the same
+     spine as the station's accent edge. */
+  .landing-steps {
+    --step-gap: 0rem;
+    row-gap: 2.25rem;
+  }
+
+  .landing-steps li:not(:last-child)::before {
+    top: calc(100% + 0.3rem);
+    left: 0;
+    width: 2px;
+    height: calc(2.25rem - 1.1rem);
+  }
+
+  .landing-steps li:not(:last-child)::after {
+    top: calc(100% + 2.25rem - 0.72rem);
+    left: -0.18rem;
+    border-top: 0;
+    border-bottom: 1.5px solid var(--accent);
   }
 
   .landing-nav a:not(.landing-nav-github) {

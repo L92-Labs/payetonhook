@@ -3,13 +3,23 @@ import LandingDemo from "./LandingDemo";
 
 const REPO_URL = "https://github.com/L92-Labs/payetonhook";
 
-const FEATURES = [
+type Feature = {
+  id: string;
+  title: string;
+  body: string;
+  meta: string;
+  wide?: boolean;
+  visual?: "ledger" | "cli";
+};
+
+const FEATURES: Feature[] = [
   {
     id: "ingestion",
     title: "Durable ingestion",
     body: "Every delivery lands in D1 with the raw payload preserved in R2. Nothing is lost between the provider's retry and your debugging session.",
     meta: "D1 + R2",
-    wide: true
+    wide: true,
+    visual: "ledger"
   },
   {
     id: "fanout",
@@ -27,14 +37,16 @@ const FEATURES = [
     id: "dlq",
     title: "Dead-letter triage",
     body: "Failed deliveries queue in a first-class dead-letters view: latest failing attempt per target, deep-link to the event, replay from there.",
-    meta: "DLQ"
+    meta: "DLQ",
+    wide: true
   },
   {
     id: "tunnel",
     title: "Local tunnel CLI",
     body: "relay tunnel --to localhost:3000/webhook streams live events to your machine while the dashboard keeps the ledger.",
     meta: "relay",
-    wide: true
+    wide: true,
+    visual: "cli"
   },
   {
     id: "keys",
@@ -43,6 +55,38 @@ const FEATURES = [
     meta: "1200 req/min"
   }
 ];
+
+/** Small CSS-built readouts for the wide capability cards. Every token they show is
+ *  already stated on this page or in the README; no numbers, no sample data. */
+function FeatureVisual({ kind }: { kind: "ledger" | "cli" }) {
+  if (kind === "cli") {
+    return (
+      <code className="landing-readout landing-readout-cli">
+        <span className="landing-readout-prompt" aria-hidden="true">$</span> relay tunnel --to http://localhost:3000/webhook
+      </code>
+    );
+  }
+  return (
+    // Restates the card copy as a picture, so it stays hidden from assistive tech.
+    // Rows are divs: a p here would pick up the card paragraph type from .landing-feature p.
+    <div className="landing-readout" aria-hidden="true">
+      <div className="landing-readout-row">
+        <span className="chip">POST</span>
+        <code>/in/your-project</code>
+      </div>
+      <div className="landing-readout-row">
+        <span>raw payload</span>
+        <span className="landing-readout-arrow">→</span>
+        <code>R2</code>
+      </div>
+      <div className="landing-readout-row">
+        <span>event</span>
+        <span className="landing-readout-arrow">→</span>
+        <code>D1</code>
+      </div>
+    </div>
+  );
+}
 
 const FAQ = [
   {
@@ -118,10 +162,16 @@ export default function LandingView({ loginUrl }: { loginUrl: string }) {
         <h2>Everything the loop needs</h2>
         <div className="landing-feature-grid">
           {FEATURES.map((f) => (
-            <article key={f.id} className={`landing-feature ${f.wide ? "wide" : ""}`}>
-              <span className="landing-feature-meta">{f.meta}</span>
-              <h3>{f.title}</h3>
-              <p>{f.body}</p>
+            <article
+              key={f.id}
+              className={`landing-feature ${f.wide ? "wide" : ""} ${f.visual ? "has-visual" : ""}`}
+            >
+              <div className="landing-feature-copy">
+                <span className="landing-feature-meta">{f.meta}</span>
+                <h3>{f.title}</h3>
+                <p>{f.body}</p>
+              </div>
+              {f.visual ? <FeatureVisual kind={f.visual} /> : null}
             </article>
           ))}
         </div>
@@ -129,18 +179,31 @@ export default function LandingView({ loginUrl }: { loginUrl: string }) {
 
       <section className="landing-how" id="how">
         <p className="eyebrow">How it works</p>
+        {/* Three stations on one rail, in the console's node-and-line vocabulary. */}
         <ol className="landing-steps">
           <li>
+            <div className="landing-station">
+              <span className="landing-station-label">Ingress</span>
+              <code>/in/your-project</code>
+            </div>
             <span className="landing-step-n">01</span>
             <h3>Point</h3>
             <p>Give your provider the project ingress URL. Any POST, any payload, any headers.</p>
           </li>
           <li>
+            <div className="landing-station">
+              <span className="landing-station-label">Ledger</span>
+              <code>D1 + R2</code>
+            </div>
             <span className="landing-step-n">02</span>
             <h3>Inspect</h3>
             <p>Open the dashboard: the event ledger, the raw payload, every attempt with status and latency.</p>
           </li>
           <li>
+            <div className="landing-station">
+              <span className="landing-station-label">Tunnel</span>
+              <code>localhost:3000</code>
+            </div>
             <span className="landing-step-n">03</span>
             <h3>Forward</h3>
             <p>Tunnel events to localhost while you code, then replay stored ones when the handler is fixed.</p>
