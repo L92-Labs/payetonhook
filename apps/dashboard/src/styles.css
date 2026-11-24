@@ -2534,6 +2534,18 @@ h3 {
     align-items: stretch;
   }
 
+  /* The summary head kept its row layout here, so the ingress block ran past the
+     viewport edge. Stack it, then let the full-width ingress row read on one line. */
+  .project-summary-head.compact {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .project-summary .project-ingress-row {
+    flex-direction: row;
+    align-items: center;
+  }
+
   .event-time {
     margin-left: 0;
   }
