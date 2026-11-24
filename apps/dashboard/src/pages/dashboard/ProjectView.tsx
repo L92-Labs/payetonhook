@@ -19,7 +19,6 @@ import type {
 type ProjectViewProps = {
   activeSection: ProjectSection;
   activeTunnelCount: number;
-  countryFlag: (country: string | null) => string | null;
   dateOnly: Intl.DateTimeFormat;
   endpointBase: string;
   health: DeliveryHealthMetric;
@@ -77,7 +76,6 @@ const PROJECT_SECTIONS: Array<{ id: ProjectSection; label: string }> = [
 export function ProjectView({
   activeSection,
   activeTunnelCount,
-  countryFlag,
   dateOnly,
   endpointBase,
   health,
@@ -186,7 +184,6 @@ export function ProjectView({
         return (
           <ProjectTunnelsSection
             activeTunnelCount={activeTunnelCount}
-            countryFlag={countryFlag}
             onCopyText={onCopyText}
             onDisconnectTunnel={onDisconnectTunnel}
             onSelectTunnel={onSelectTunnel}
@@ -803,7 +800,6 @@ function ProjectMonitoringSection({
 
 function ProjectTunnelsSection({
   activeTunnelCount,
-  countryFlag,
   onCopyText,
   onDisconnectTunnel,
   onSelectTunnel,
@@ -813,7 +809,6 @@ function ProjectTunnelsSection({
   tunnels
 }: {
   activeTunnelCount: number;
-  countryFlag: (country: string | null) => string | null;
   onCopyText: (text: string, label: string) => void;
   onDisconnectTunnel: (tunnelId: string) => void;
   onSelectTunnel: (tunnelId: string | null) => void;
@@ -908,11 +903,7 @@ function ProjectTunnelsSection({
                   </div>
                   <div className="tunnel-detail-row">
                     <span>Source</span>
-                    <code>
-                      {[tunnel.sourceIp, tunnel.country ? `${countryFlag(tunnel.country) ?? ""} ${tunnel.country}`.trim() : null]
-                        .filter(Boolean)
-                        .join(" · ") || "unknown"}
-                    </code>
+                    <code>{[tunnel.sourceIp, tunnel.country].filter(Boolean).join(" · ") || "unknown"}</code>
                   </div>
                   <div className="tunnel-detail-row">
                     <span>Tunnel ID</span>

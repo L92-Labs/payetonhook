@@ -27,7 +27,6 @@ type TriageViewProps = {
   selectedEventRow: EventRow | null;
   timeAgo: (ts: number) => string;
   endpointPathForEvent: (event: Pick<EventRow, "endpoint_path" | "project_slug">) => string;
-  countryFlag: (country: string | null) => string | null;
 };
 
 export function TriageView({
@@ -56,8 +55,7 @@ export function TriageView({
   selectedEvent,
   selectedEventRow,
   timeAgo,
-  endpointPathForEvent,
-  countryFlag
+  endpointPathForEvent
 }: TriageViewProps) {
   return (
     <section className="triage-layout" id="main-workspace">
@@ -265,15 +263,9 @@ export function TriageView({
                       <span>{attempt.success === 1 ? "Forwarded" : "Failed"}</span>
                       <span>{attempt.status_code ?? "local error"}</span>
                       <small>
-                        {[
-                          attempt.source_ip,
-                          attempt.country ? `${countryFlag(attempt.country) ?? ""} ${attempt.country}`.trim() : null,
-                          attempt.os,
-                          attempt.platform
-                        ]
+                        {[attempt.source_ip, attempt.country, attempt.os, attempt.platform]
                           .filter(Boolean)
-                          .join(" · ") ||
-                          attempt.target_url || ""}
+                          .join(" · ") || attempt.target_url || ""}
                       </small>
                     </li>
                   ))

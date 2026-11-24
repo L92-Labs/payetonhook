@@ -599,14 +599,6 @@ export function DashboardApp() {
     return `${eventDateTimeFormatter.format(new Date(ts))}${timeZoneMode === "utc" ? " UTC" : ""}`;
   }
 
-  function countryFlag(country: string | null): string | null {
-    if (!country) return null;
-    const code = country.trim().toUpperCase();
-    if (!/^[A-Z]{2}$/.test(code)) return null;
-    const base = 127397;
-    return String.fromCodePoint(code.charCodeAt(0) + base, code.charCodeAt(1) + base);
-  }
-
   const dateTime = useMemo(
     () => new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }),
     []
@@ -867,7 +859,6 @@ export function DashboardApp() {
       {route?.place === "events" ? (
         <TriageView
           attempts={attempts}
-          countryFlag={countryFlag}
           deadLettersCount={attempts.filter((a) => a.success === 0).length}
           density={density}
           endpointPathForEvent={endpointPathForEvent}
@@ -923,7 +914,6 @@ export function DashboardApp() {
         <ProjectView
           activeSection={route.section}
           activeTunnelCount={activeTunnelCount}
-          countryFlag={countryFlag}
           dateOnly={dateOnly}
           endpointBase={endpointBase}
           health={health}
